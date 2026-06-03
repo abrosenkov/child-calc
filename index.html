@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор дат процедур ребенка</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <section class="calculator" aria-labelledby="pageTitle">
+      <div class="calculator__content">
+        <span class="calculator__badge">Медицинский график</span>
+        <h1 id="pageTitle">Калькулятор дат процедур ребенка</h1>
+        <p>
+          Введите дату рождения ребенка, чтобы рассчитать ориентировочные даты процедур
+          по возрастным этапам.
+        </p>
+
+        <form class="calculator__form" id="dateForm" novalidate>
+          <div class="field">
+            <label for="birthDate">Дата рождения ребенка</label>
+            <input type="date" id="birthDate" name="birthDate" required />
+            <span class="field__error" id="dateError" aria-live="polite"></span>
+          </div>
+
+          <div class="calculator__actions">
+            <button type="submit" class="button button--primary">Рассчитать</button>
+            <button type="button" class="button button--ghost" id="clearBtn">Очистить</button>
+          </div>
+        </form>
+
+      </div>
+
+      <aside class="calculator__summary" aria-label="Краткая информация">
+        <span>Ближайший этап</span>
+        <strong id="nearestPreview">Укажите дату</strong>
+        <small id="nearestDate">Результат появится после расчета</small>
+      </aside>
+    </section>
+
+    <section class="result" id="resultSection" aria-live="polite">
+      <div class="result__top">
+        <div>
+          <span class="section-label">Расписание</span>
+          <h2>График процедур</h2>
+        </div>
+        <p id="childAge"></p>
+      </div>
+
+      <div class="result__table-wrapper">
+        <table class="result__table">
+          <thead>
+            <tr>
+              <th>Этап</th>
+              <th>Возраст</th>
+              <th>Дата</th>
+              <th>День недели</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
