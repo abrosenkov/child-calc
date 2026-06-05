@@ -143,6 +143,70 @@ a {
   border-color: var(--danger);
 }
 
+.date-field {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.date-field__picker {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  border: 1px solid #cbdde6;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--primary-dark);
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.date-field__picker svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.date-field__picker:focus-visible,
+.date-field__picker:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(90, 183, 200, 0.16);
+  background: #fbfeff;
+}
+
+.field .date-field__native {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 54px;
+  min-height: 54px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.field .date-field__native::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 .field__error {
   min-height: 18px;
   color: var(--danger);

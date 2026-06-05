@@ -78,6 +78,8 @@ const schedule = [
 
 const form = document.querySelector("#dateForm");
 const birthDateInput = document.querySelector("#birthDate");
+const birthDatePicker = document.querySelector("#birthDatePicker");
+const birthDatePickerButton = document.querySelector("#birthDatePickerButton");
 const dateError = document.querySelector("#dateError");
 const clearButton = document.querySelector("#clearBtn");
 const resultSection = document.querySelector("#resultSection");
@@ -103,7 +105,7 @@ const weekdayFormatter = new Intl.DateTimeFormat("sk-SK", {
 });
 
 const today = stripTime(new Date());
-birthDateInput.max = toInputDate(today);
+birthDatePicker.max = toInputDate(today);
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -112,14 +114,50 @@ form.addEventListener("submit", (event) => {
 
 birthDateInput.addEventListener("input", () => {
   clearError();
+  birthDatePicker.value = "";
+  birthDateInput.value = maskManualDateInput(birthDateInput.value);
 
-  if (birthDateInput.value) {
+  const birthDate = parseBirthDateValue(birthDateInput.value);
+
+  if (birthDate) {
+    birthDatePicker.value = toInputDate(birthDate);
+    calculate();
+  }
+});
+
+birthDateInput.addEventListener("blur", () => {
+  const birthDate = parseBirthDateValue(birthDateInput.value);
+
+  if (birthDate) {
+    birthDateInput.value = formatManualDate(birthDate);
+    birthDatePicker.value = toInputDate(birthDate);
+    return;
+  }
+
+  birthDateInput.value = completePartialManualDate(birthDateInput.value);
+});
+
+birthDatePickerButton.addEventListener("click", () => {
+  openNativeDatePicker();
+});
+
+birthDatePicker.addEventListener("change", () => {
+  if (!birthDatePicker.value) {
+    return;
+  }
+
+  const date = stripTime(new Date(`${birthDatePicker.value}T00:00:00`));
+
+  if (!Number.isNaN(date.getTime())) {
+    birthDateInput.value = formatManualDate(date);
+    clearError();
     calculate();
   }
 });
 
 clearButton.addEventListener("click", () => {
   form.reset();
+  birthDatePicker.value = "";
   clearError();
   resultSection.classList.remove("active");
   resultBody.innerHTML = "";
@@ -181,9 +219,9 @@ function getBirthDate() {
     return null;
   }
 
-  const date = stripTime(new Date(`${birthDateInput.value}T00:00:00`));
+  const date = parseBirthDateValue(birthDateInput.value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date) {
     setError("Dátum nie je zadaný správne.");
     return null;
   }
@@ -199,6 +237,8 @@ function getBirthDate() {
   }
 
   clearError();
+  birthDateInput.value = formatManualDate(date);
+  birthDatePicker.value = toInputDate(date);
   return date;
 }
 
@@ -349,6 +389,144 @@ function plural(value, forms) {
   }
 
   return forms[2];
+}
+
+function cleanManualDateInput(value) {
+  return value
+    .replace(/[,/\-\s]+/g, ".")
+    .replace(/[^\d.]/g, "")
+    .replace(/\.{2,}/g, ".")
+    .slice(0, 10);
+}
+
+function maskManualDateInput(value) {
+  const hasManualSeparator = /[.,/\-\s]/.test(value);
+
+  if (hasManualSeparator) {
+    return maskSeparatedManualDateInput(value);
+  }
+
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  const day = digits.slice(0, 2);
+  const monthAndYear = digits.slice(2);
+
+  if (monthAndYear.length === 0) {
+    return `${day}.`;
+  }
+
+  if (Number(monthAndYear[0]) > 1) {
+    return `${day}.0${monthAndYear[0]}.${monthAndYear.slice(1, 5)}`;
+  }
+
+  if (monthAndYear.length === 1) {
+    return `${day}.${monthAndYear}`;
+  }
+
+  return `${day}.${monthAndYear.slice(0, 2)}.${monthAndYear.slice(2, 6)}`;
+}
+
+function maskSeparatedManualDateInput(value) {
+  const cleanedValue = cleanManualDateInput(value);
+  const parts = cleanedValue.split(".");
+  const dayText = (parts[0] || "").slice(0, 2);
+  const monthText = (parts[1] || "").slice(0, 2);
+  const yearText = parts.slice(2).join("").slice(0, 4);
+
+  if (parts.length === 1) {
+    return dayText;
+  }
+
+  if (!monthText) {
+    return `${dayText}.`;
+  }
+
+  if (monthText.length === 1 && Number(monthText) > 1) {
+    return `${dayText}.0${monthText}.${yearText}`;
+  }
+
+  if (monthText.length === 1) {
+    return `${dayText}.${monthText}`;
+  }
+
+  return `${dayText}.${monthText}.${yearText}`;
+}
+
+function completePartialManualDate(value) {
+  const cleanedValue = cleanManualDateInput(value).replace(/\.$/, "");
+  const parts = cleanedValue.split(".").filter(Boolean);
+
+  if (parts.length < 2 || parts.length > 3) {
+    return cleanedValue;
+  }
+
+  const [dayText, monthText, yearText = ""] = parts;
+
+  if (!/^\d{1,2}$/.test(dayText) || !/^\d{1,2}$/.test(monthText) || (yearText && !/^\d{1,4}$/.test(yearText))) {
+    return cleanedValue;
+  }
+
+  const formattedDay = dayText.padStart(2, "0");
+  const formattedMonth = monthText.padStart(2, "0");
+
+  return yearText ? `${formattedDay}.${formattedMonth}.${yearText}` : `${formattedDay}.${formattedMonth}`;
+}
+
+function openNativeDatePicker() {
+  birthDatePicker.focus({ preventScroll: true });
+
+  if (typeof birthDatePicker.showPicker === "function") {
+    birthDatePicker.showPicker();
+    return;
+  }
+
+  birthDatePicker.click();
+}
+
+function parseBirthDateValue(value) {
+  const cleanedValue = completePartialManualDate(value).replace(/\.$/, "");
+
+  if (!cleanedValue) {
+    return null;
+  }
+
+  let parts = cleanedValue.split(".").filter(Boolean);
+
+  if (parts.length === 1 && /^\d{8}$/.test(parts[0])) {
+    parts = [parts[0].slice(0, 2), parts[0].slice(2, 4), parts[0].slice(4)];
+  }
+
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const [dayText, monthText, yearText] = parts;
+
+  if (!/^\d{1,2}$/.test(dayText) || !/^\d{1,2}$/.test(monthText) || !/^\d{4}$/.test(yearText)) {
+    return null;
+  }
+
+  const day = Number(dayText);
+  const month = Number(monthText);
+  const year = Number(yearText);
+  const date = stripTime(new Date(year, month - 1, day));
+
+  if (date.getDate() !== day || date.getMonth() !== month - 1 || date.getFullYear() !== year) {
+    return null;
+  }
+
+  return date;
+}
+
+function formatManualDate(date) {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  return `${day}.${month}.${date.getFullYear()}`;
 }
 
 function stripTime(date) {

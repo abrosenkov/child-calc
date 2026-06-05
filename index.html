@@ -20,7 +20,25 @@
         <form class="calculator__form" id="dateForm" novalidate>
           <div class="field">
             <label for="birthDate">Dátum narodenia dieťaťa</label>
-            <input type="date" id="birthDate" name="birthDate" required />
+            <div class="date-field">
+              <input
+                type="text"
+                id="birthDate"
+                name="birthDate"
+                inputmode="numeric"
+                autocomplete="bday"
+                placeholder="dd.mm.rrrr"
+                maxlength="10"
+                required
+              />
+              <button type="button" class="date-field__picker" id="birthDatePickerButton" aria-label="Open calendar">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M8 2v4M16 2v4M3.5 9.2h17M6 4h12a2.5 2.5 0 0 1 2.5 2.5V19A2.5 2.5 0 0 1 18 21.5H6A2.5 2.5 0 0 1 3.5 19V6.5A2.5 2.5 0 0 1 6 4Z" />
+                  <path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01" />
+                </svg>
+              </button>
+              <input type="date" id="birthDatePicker" class="date-field__native" tabindex="-1" aria-hidden="true" />
+            </div>
             <span class="field__error" id="dateError" aria-live="polite"></span>
           </div>
 
